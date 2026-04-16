@@ -1,35 +1,29 @@
 # Development
 
-Local build and run (no Gradle installation required; the project includes a wrapper).
-
 ## Prerequisites
 
-- **Java 25** — e.g. `brew install openjdk@25` (macOS) or [Eclipse Temurin 25](https://adoptium.net/)
-- Set `JAVA_HOME` or `PATH` so `java` is Java 25.
+- **Java 25** — e.g. `brew install openjdk@25` on macOS, or [Eclipse Temurin 25](https://adoptium.net/)
+- Make sure `java` on your `PATH` is Java 25 (or set `JAVA_HOME`)
 
 ## Build
-
-From the project root:
 
 ```bash
 ./gradlew shadowJar
 ```
 
-Output: `build/libs/altibase-schema-diff.jar` (fat JAR with dependencies).
+Produces `build/libs/altibase-schema-diff.jar` — a fat JAR with all dependencies bundled.
 
 ## Test
-
-From the project root:
 
 ```bash
 ./gradlew test
 ```
 
-Uses JUnit 5 (Jupiter). Test sources: `src/test/java/`. Add test classes under `com.f9n.altibase.schemadiff` (or mirror `src/main/java`). CI (`.github/workflows/ci.yml`) runs tests on every push and PR.
+Uses JUnit 5. Test sources live under `src/test/java/`. CI runs tests on every push and PR via `.github/workflows/ci.yml`.
 
 ## Run locally
 
-**Option A — use JAR from Releases:** download `altibase-schema-diff.jar` from [Releases](https://github.com/f9n/altibase-schema-diff/releases), then:
+From a pre-built JAR (download from [Releases](https://github.com/f9n/altibase-schema-diff/releases)):
 
 ```bash
 java -jar altibase-schema-diff.jar \
@@ -39,7 +33,7 @@ java -jar altibase-schema-diff.jar \
   --target-user <user> --target-password <password>
 ```
 
-**Option B — build from source:** after `./gradlew shadowJar`:
+From source after `./gradlew shadowJar`:
 
 ```bash
 java -jar build/libs/altibase-schema-diff.jar \
@@ -47,7 +41,7 @@ java -jar build/libs/altibase-schema-diff.jar \
   --target-server <host2>
 ```
 
-Or with environment variables:
+With environment variables:
 
 ```bash
 export ALTIBASE_SOURCE_SERVER=<host1>
@@ -60,7 +54,7 @@ export ALTIBASE_TARGET_PASSWORD=<password>
 java -jar build/libs/altibase-schema-diff.jar
 ```
 
-Or with Gradle (no JAR build needed):
+Or skip the JAR step entirely and run via Gradle:
 
 ```bash
 ./gradlew run --args='--source-server <host1> --target-server <host2>'
@@ -68,7 +62,7 @@ Or with Gradle (no JAR build needed):
 
 ## Logging
 
-The tool logs to stderr. Use `--debug` or `--trace` for more verbosity:
+Output goes to stderr. Use `--debug` or `--trace` for more detail:
 
 ```bash
 java -jar build/libs/altibase-schema-diff.jar --debug \
@@ -83,9 +77,10 @@ java -jar build/libs/altibase-schema-diff.jar --debug \
 
 ## Releases
 
-When a **tag** is pushed (e.g. `v1.0.0`), GitHub Actions (`.github/workflows/release.yml`) runs:
+Push a version tag to trigger the release pipeline (`.github/workflows/release.yml`):
 
-1. **JAR** — Builds `altibase-schema-diff.jar` and attaches it to a GitHub Release for that tag.
-2. **Docker** — Builds and pushes the image to [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry): `ghcr.io/<owner>/altibase-schema-diff:<tag>`.
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```
 
-To create a release: push a tag (e.g. `git tag v1.0.0 && git push origin v1.0.0`). Then download the JAR from the Releases page or pull the image: `docker pull ghcr.io/f9n/altibase-schema-diff:v1.0.0`.
+This builds the fat JAR, attaches it to a GitHub Release, and pushes the Docker image to [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry) as `ghcr.io/<owner>/altibase-schema-diff:<tag>`.

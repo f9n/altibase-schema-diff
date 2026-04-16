@@ -20,9 +20,6 @@ public class DiffPrinter {
     private static final String CYAN = "\033[36m";
     private static final String MAGENTA = "\033[35m";
     private static final String DIM = "\033[2m";
-    private static final String BG_RED = "\033[41m";
-    private static final String BG_GREEN = "\033[42m";
-    private static final String WHITE = "\033[37m";
 
     private final PrintStream out;
     private final boolean color;

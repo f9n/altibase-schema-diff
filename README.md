@@ -1,19 +1,16 @@
 # altibase-schema-diff
 
-Schema comparison and drift detection tool for Altibase Database clusters.
+Schema comparison tool for Altibase database clusters. Connects to two servers and reports structural differences side by side.
 
-For local build, run, and releases, see [DEVELOPMENT.md](DEVELOPMENT.md).
+Compares:
 
----
+- Schemas (users)
+- Tables (column names, types, sizes, nullability, defaults)
+- Stored Procedures and Functions (existence + source)
+- Sequences (min/max values, cycle, cache size)
+- Views (existence + definition)
 
-Compares two Altibase servers and reports differences in:
-
-- **Schemas** (users)
-- **Tables** (column names, types, sizes, nullability, defaults)
-- **Stored Procedures** (existence + source code)
-- **Functions** (existence + source code)
-- **Sequences** (min/max values, cycle, cache size)
-- **Views** (existence + definition source)
+See [DEVELOPMENT.md](DEVELOPMENT.md) for build instructions and release workflow.
 
 ## Quick Start
 
@@ -48,7 +45,7 @@ java -jar build/libs/altibase-schema-diff.jar \
 
 ### Environment variables
 
-All options can be set via environment variables. Useful for keeping passwords out of shell history:
+All options can also be set via environment variables, which is useful for keeping passwords out of shell history:
 
 ```bash
 export ALTIBASE_SOURCE_SERVER=192.168.1.1
@@ -61,7 +58,7 @@ export ALTIBASE_TARGET_PASSWORD=manager
 java -jar build/libs/altibase-schema-diff.jar
 ```
 
-You can also mix environment variables with CLI arguments (CLI takes precedence):
+CLI arguments take precedence over environment variables, so you can mix them:
 
 ```bash
 export ALTIBASE_SOURCE_PASSWORD=secret123
@@ -72,7 +69,7 @@ java -jar build/libs/altibase-schema-diff.jar \
   --target-server 192.168.1.2
 ```
 
-Full list of environment variables:
+Full list of supported environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -88,7 +85,7 @@ Full list of environment variables:
 | `ALTIBASE_TARGET_DATABASE` | `mydb` | Target database |
 | `ALTIBASE_CONNECT_TIMEOUT` | `10` | Connection timeout (seconds) |
 
-### Filter specific schemas
+### Filtering schemas
 
 ```bash
 java -jar build/libs/altibase-schema-diff.jar \
@@ -99,25 +96,25 @@ java -jar build/libs/altibase-schema-diff.jar \
 
 ### Caching
 
-Schema extraction can be slow for large databases. The tool caches snapshots locally:
+Schema extraction can be slow on large databases. Snapshots are cached locally by default:
 
 ```bash
-# Custom cache directory and TTL
+# custom cache directory and TTL
 java -jar build/libs/altibase-schema-diff.jar \
   --source-server 192.168.1.1 \
   --target-server 192.168.1.2 \
   --cache-dir /tmp/schema-cache \
   --cache-ttl 7200
 
-# Disable caching
+# skip the cache entirely
 java -jar build/libs/altibase-schema-diff.jar \
   --source-server 192.168.1.1 \
   --target-server 192.168.1.2 \
   --no-cache
 ```
 
-Default cache directory: `~/.altibase-schema-diff/cache/`
-Default TTL: 3600 seconds (1 hour)
+Default cache directory: `~/.altibase-schema-diff/cache/`  
+Default TTL: 3600 seconds
 
 ### Exit codes
 
@@ -163,15 +160,15 @@ Default TTL: 3600 seconds (1 hour)
 
 ## Docker
 
-**1. Pull the image** from [GitHub Container Registry](https://github.com/f9n/altibase-schema-diff/pkgs/container/altibase-schema-diff):
+Pull from [GitHub Container Registry](https://github.com/f9n/altibase-schema-diff/pkgs/container/altibase-schema-diff):
 
 ```bash
 docker pull ghcr.io/f9n/altibase-schema-diff:latest
 ```
 
-Or use a specific release tag (e.g. `v1.0.0`): `docker pull ghcr.io/f9n/altibase-schema-diff:v1.0.0`.
+Or pin to a specific tag: `docker pull ghcr.io/f9n/altibase-schema-diff:v1.0.0`
 
-**2. Run:**
+Run with environment variables:
 
 ```bash
 docker run --rm \
@@ -184,7 +181,7 @@ docker run --rm \
   ghcr.io/f9n/altibase-schema-diff:latest
 ```
 
-With CLI arguments:
+Or with CLI arguments:
 
 ```bash
 docker run --rm ghcr.io/f9n/altibase-schema-diff:latest \
@@ -194,12 +191,12 @@ docker run --rm ghcr.io/f9n/altibase-schema-diff:latest \
   --no-cache
 ```
 
-**Optional — build the image locally:** `docker build -t altibase-schema-diff .` then use `altibase-schema-diff` as the image name.
+To build locally: `docker build -t altibase-schema-diff .`
 
 ## Requirements
 
 - Java 25+
-- Altibase JDBC driver (bundled in fat JAR)
+- Altibase JDBC driver (bundled in the fat JAR)
 
 ## License
 

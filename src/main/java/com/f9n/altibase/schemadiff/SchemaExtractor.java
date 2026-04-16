@@ -203,7 +203,7 @@ public class SchemaExtractor {
             while (rs.next()) {
                 String user = rs.getString(1).trim();
                 String seqName = rs.getString(2).trim();
-                // Sequence details (min, max, etc.) are not available in a central system table in this Altibase version.
+                // min/max/cycle/cache are not exposed in a central system table on this version
                 result.add(new SequenceInfo(user, seqName, 0, 0, "N/A", 0));
                 log.debug("  sequence: {}.{}", user, seqName);
             }
@@ -221,8 +221,6 @@ public class SchemaExtractor {
     }
 
     private List<ViewInfo> extractViews(List<String> schemas) throws SQLException {
-        // Strategy 1: SYS_TABLES_ (TABLE_TYPE='V') + SYS_VIEW_PARSE_ (TABLE_ID as VIEW_ID)
-        // SYS_VIEWS_ may not have TABLE_ID on all versions, so we go through SYS_TABLES_ directly.
         List<ViewInfo> result = new ArrayList<>();
         String sql = """
                 SELECT T.TABLE_ID, T.TABLE_NAME, U.USER_NAME

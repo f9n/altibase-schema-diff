@@ -16,20 +16,15 @@ public final class SourceNormalizer {
             Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
     );
 
-    // /* ... */ block comments (non-greedy, across lines)
     private static final Pattern BLOCK_COMMENT = Pattern.compile(
             "/\\*.*?\\*/",
             Pattern.DOTALL
     );
 
-    // -- line comments
     private static final Pattern LINE_COMMENT = Pattern.compile(
             "--[^\n]*"
     );
 
-    /**
-     * Normalize for equality comparison (single-line, all whitespace collapsed, comments stripped).
-     */
     public static String forComparison(String src) {
         if (src == null) return "";
         String s = src.strip();
@@ -40,9 +35,6 @@ public final class SourceNormalizer {
         return s;
     }
 
-    /**
-     * Normalize for display/diff (preserves line structure, cleans cosmetic noise, strips comments).
-     */
     public static String forDisplay(String src) {
         if (src == null) return "";
         String s = SCHEMA_PREFIX.matcher(src).replaceFirst("$1");
