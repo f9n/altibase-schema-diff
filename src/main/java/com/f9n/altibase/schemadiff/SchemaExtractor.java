@@ -179,54 +179,14 @@ public class SchemaExtractor {
         return sb.toString();
     }
 
-    private List<SequenceInfo> extractSequences() {
-        List<SequenceInfo> result;
-
-        // Strategy 1: SYS_SEQUENCES_ (available in some Altibase versions)
+    List<SequenceInfo> extractSequences() {
         try {
-            result = tryExtractFromSysSequences();
-            if (!result.isEmpty()) {
-                log.debug("Extracted sequences via SYS_SEQUENCES_");
-                return applySchemaFilter(result);
-            }
-        } catch (SQLException e) {
-            log.debug("SYS_SEQUENCES_ not available: {}", e.getMessage());
-        }
-
-        // Strategy 2: SYS_TABLES_ WHERE TABLE_TYPE = 'S' (works on all versions)
-        try {
-            result = tryExtractFromSysTables();
-            log.debug("Extracted sequences via SYS_TABLES_ (TABLE_TYPE='S')");
+            List<SequenceInfo> result = tryExtractFromSysTables();
             return applySchemaFilter(result);
         } catch (SQLException e) {
             log.warn("Failed to extract sequences: {}", e.getMessage());
             return List.of();
         }
-    }
-
-    private List<SequenceInfo> tryExtractFromSysSequences() throws SQLException {
-        List<SequenceInfo> result = new ArrayList<>();
-        String sql = "SELECT USER_NAME, SEQUENCE_NAME, MIN_VALUE, MAX_VALUE, CYCLE, CACHE_SIZE FROM SYSTEM_.SYS_SEQUENCES_";
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                String user = rs.getString(1);
-                if (user == null || user.isBlank()) continue;
-                user = user.trim();
-                String seqName = rs.getString(2);
-                if (seqName == null || seqName.isBlank()) continue;
-                seqName = seqName.trim();
-
-                long minVal = rs.getLong(3);
-                long maxVal = rs.getLong(4);
-                String cycle = parseCycle(rs.getObject(5));
-                long cacheSize = rs.getLong(6);
-
-                result.add(new SequenceInfo(user, seqName, minVal, maxVal, cycle, cacheSize));
-                log.debug("  sequence: {}.{} min={} max={} cycle={} cache={}", user, seqName, minVal, maxVal, cycle, cacheSize);
-            }
-        }
-        return result;
     }
 
     private List<SequenceInfo> tryExtractFromSysTables() throws SQLException {
@@ -243,6 +203,7 @@ public class SchemaExtractor {
             while (rs.next()) {
                 String user = rs.getString(1).trim();
                 String seqName = rs.getString(2).trim();
+                // Sequence details (min, max, etc.) are not available in a central system table in this Altibase version.
                 result.add(new SequenceInfo(user, seqName, 0, 0, "N/A", 0));
                 log.debug("  sequence: {}.{}", user, seqName);
             }
@@ -257,17 +218,6 @@ public class SchemaExtractor {
                     .toList();
         }
         return result;
-    }
-
-    private static String parseCycle(Object value) {
-        if (value == null) return "N/A";
-        if (value instanceof Number n) return n.intValue() != 0 ? "YES" : "NO";
-        String s = String.valueOf(value).trim().toUpperCase();
-        return switch (s) {
-            case "Y", "YES", "1" -> "YES";
-            case "N", "NO", "0" -> "NO";
-            default -> s;
-        };
     }
 
     private List<ViewInfo> extractViews(List<String> schemas) throws SQLException {
